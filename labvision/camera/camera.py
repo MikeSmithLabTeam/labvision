@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from .camera_config import CameraType, CameraProperty
-from typing import Optional, Tuple, Boolean
+from typing import Optional, Tuple
 
 if os.name == 'nt':
     import win32com.client
