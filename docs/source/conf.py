@@ -12,17 +12,18 @@
 #
 import os
 import sys
+sys.path.insert(0, os.path.abspath('.'))
+0, os.path.abspath('..')
 sys.path.insert(0, os.path.abspath('../..'))
-
 
 # -- Project information -----------------------------------------------------
 
-project = 'labvision'
-copyright = '2020, mikesmithlabteam'
-author = 'mikesmithlabteam'
+project = 'Labvision'
+copyright = '2020, Mike Smith, James Downs'
+author = 'Mike Smith, James Downs'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = '2.0.0'
 master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
@@ -33,9 +34,14 @@ master_doc = 'index'
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon'
 ]
 
+
+from PyQt5.QtWidgets import QListWidget
+
 #Although the docs built the automodule didn't import the code
 #It built locally with 'make html' but not when pushed and built on ReadTheDocs
-autodoc_mock_imports = ['cv2', 'matplotlib','numpy','scipy','slicerator','ffmpeg','sh']
+autodoc_mock_imports = ['cv2','tqdm', 'qimage2ndarray', 'matplotlib','numpy','scipy','slicerator','ffmpeg','sh', 'pandas', 'importlib','trackpy','sip','PyQt5','PyQt5.QtCore','PyQt5.QtGui','PyQt5.QtWidgets','filehandling','labvision','qtwidgets','moviepy', 'docutils']
+
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -57,3 +63,5 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 #html_static_path = ['_static']
+
+pygments_style = 'sphinx'
