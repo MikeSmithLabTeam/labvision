@@ -6,9 +6,8 @@ import shutil
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
 
+print("Testing labvision.video from:", video.__file__)
 # =================================================================================
 # ReadVideo Tests
 # =================================================================================

@@ -330,7 +330,7 @@ class ReadVideo:
 
 
 class WriteVideo:
-    """WriteVideo writes images to a video file using OpenCV
+    """WriteVideo writes images to a video file using OpenCV and the H.264 codec. 
 
     Attributes
     ----------
@@ -357,10 +357,10 @@ class WriteVideo:
     """
 
 
-    def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='XVID'):
+    def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='X264', compression=23):
         self.filename=filename
 
-        fourcc = cv2.VideoWriter_fourcc(*list(codec))
+        fourcc = cv2.VideoWriter_fourcc(*codec)
 
         assert (frame_size is not None or frame is not None), "One of frame or frame_size must be supplied"
 
@@ -377,11 +377,15 @@ class WriteVideo:
         if frame is None:
             self.frame_size = frame_size
 
+       
         self.vid = cv2.VideoWriter(
-            filename,
-            fourcc,
-            fps,
-            (self.frame_size[1], self.frame_size[0]))
+                filename,
+                fourcc,
+                fps,
+                (self.frame_size[1], self.frame_size[0]))
+            
+        #self.vid.set(cv2.VIDEOWRITER_PROP_QUALITY, compression_level)  # Adjust bitrate based on compression level
+        
 
 
     def add_frame(self, im):
@@ -457,4 +461,15 @@ def imgs_to_video(file_filter, videoname, sort=None):
         
 
 
+class SuppressOpenCVWarnings:
+    """Context manager to suppress OpenCV warnings about codecs."""
+    def __enter__(self):
+        self.original_value = os.environ.get('OPENCV_VIDEOIO_DEBUG')
+        os.environ['OPENCV_VIDEOIO_DEBUG'] = '0'
+        return self
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.original_value is None:
+            del os.environ['OPENCV_VIDEOIO_DEBUG']
+        else:
+            os.environ['OPENCV_VIDEOIO_DEBUG'] = self.original_value

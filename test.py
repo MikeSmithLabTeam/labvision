@@ -1,6 +1,8 @@
 
-import numpy as np
-from labvision.images.cropmask import viewer
+from cgi import test
+from labvision.camera.camera import get_cameras_on_windows
 
-pts=viewer(np.zeros((2000, 2000, 3)), shape='polygon')
-print(pts)
+from tests.test_camera import test_camera_get_frame
+
+test_camera_get_frame()
+    

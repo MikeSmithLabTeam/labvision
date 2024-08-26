@@ -7,9 +7,11 @@ Repository for managing images, videos and cameras.
 ## Installation from github
     pip install git+https://github.com/MikeSmithLabTeam/labvision
     
-## Manually add pyqt5 dependency from conda
+## Manually add pyqt5 dependency from conda and ffmpeg from conda-forge
 
     conda install -c conda-forge pyqt
+    conda install conda-forge::ffmpeg
+
     
     
 ## Updating if already installed
