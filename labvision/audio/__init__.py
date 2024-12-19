@@ -1,16 +1,14 @@
 import os
-
 import numpy as np
+from moviepy.audio.io.AudioFileClip import AudioFileClip
 
-from moviepy.audio.io import AudioFileClip
 
-
-def digitise(sig):
+def digitise(sig, threshold=0.7):
     """Makes a noisy square signal, perfectly square"""
     out = np.zeros(len(sig))
-    out[sig < 0.8*np.min(sig)] = -1
-    out[sig > 0.8*np.max(sig)] = 1
-    out[(sig > 0.8 * np.min(sig)) * (sig < 0.8 * np.max(sig))] = 0
+    out[sig < threshold*np.min(sig)] = -1
+    out[sig > threshold*np.max(sig)] = 1
+    out[(sig > threshold * np.min(sig)) * (sig < threshold * np.max(sig))] = 0
     return out
 
 def fourier_transform_peak(sig, time_step):
