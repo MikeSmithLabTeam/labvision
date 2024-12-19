@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from moviepy.audio.io.AudioFileClip import AudioFileClip
-
+import subprocess
 
 def digitise(sig, threshold=0.7):
     """Makes a noisy square signal, perfectly square"""
@@ -20,19 +20,28 @@ def fourier_transform_peak(sig, time_step):
     return abs(freq[peak])
 
 
-def frame_frequency(wave, frames, audio_rate):
-    """Returns the peak frequency in an audio file for each video frame"""
-    window = int(len(wave)/frames)
-    windows = frames
-    freq = np.zeros(windows)
-    for i in range(windows):
-        b = i*window
-        t = (i+1)*window
-        if t > len(wave):
-            t = len(wave)
-        freq[i] = int(fourier_transform_peak(wave[b:t], 1/audio_rate))
-    return freq
+def frame_frequency(wave, num_frames, audio_rate):
+    """Returns the frequency encoded in the audio signal of a video for each video frame
+    
+    inputs:
+    wave : a 1d numpy array containing the audio from video
+    num_frames : int - the number of frames contained in the audio wave
+    audio_rate  : int - number of points per sec in the audio.
 
+    returns:
+    freq    :   a 1d numpy array with each value corresponding to the main frequency of the audio signal in the corresponding frame.
+
+    """
+    window = int(len(wave)/num_frames)
+    
+    freq = np.zeros(num_frames)
+    for i in range(num_frames):
+        start = i*window
+        stop = (i+1)*window
+        if stop > len(wave):
+            stop = len(wave)
+        freq[i] = int(fourier_transform_peak(wave[start:stop], 1/audio_rate))
+    return freq
 
 def extract_wav(file):
     audioclip = AudioFileClip(file)

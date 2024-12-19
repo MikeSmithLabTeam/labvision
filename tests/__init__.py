@@ -16,6 +16,7 @@ jpg_seqpath = os.path.join(DATA_DIR, 'jpgs/SampleVideo*.jpg')
 tiff_seqpath = os.path.join(DATA_DIR, 'tiffs/SampleVideo*.tiff')
 single_img = os.path.join(DATA_DIR, 'pngs/SampleVideo1.png')
 vid_output_filename = os.path.join(DATA_DIR, 'video/test.mp4')
+audio_vid_filename = os.path.join(DATA_DIR, 'video/test_audio.mp4')
 
 # ---------------------------------------------------------------
 #   test functions
