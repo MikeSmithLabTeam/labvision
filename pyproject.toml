@@ -18,6 +18,7 @@ dependencies = [
 "pexpect",
 "pillow",
 "scipy",
+"moviepy",
 "slicerator",
 "qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets",
 "filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling"
