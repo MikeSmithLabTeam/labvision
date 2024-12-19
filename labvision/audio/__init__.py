@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from moviepy.editor import AudioFileClip
+from moviepy.audio.io import AudioFileClip
 
 
 def digitise(sig):
