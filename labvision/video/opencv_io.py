@@ -6,6 +6,7 @@ from filehandling import BatchProcess, smart_number_sort
 from .. import images
 from typing import Optional, Tuple
 
+
 IMG_FILE_EXT = ('.png','.jpg','.tiff','.JPG','.PNG','.TIFF')
 VID_FILE_EXT = ('.MP4', '.mp4', '.m4v', '.avi', '.mkv', '.webm')
 
