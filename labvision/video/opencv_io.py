@@ -7,33 +7,34 @@ from .. import images
 from typing import Optional, Tuple
 
 
-IMG_FILE_EXT = ('.png','.jpg','.tiff','.JPG','.PNG','.TIFF')
+IMG_FILE_EXT = ('.png', '.jpg', '.tiff', '.JPG', '.PNG', '.TIFF')
 VID_FILE_EXT = ('.MP4', '.mp4', '.m4v', '.avi', '.mkv', '.webm')
 
 """type hints"""
 FrameRange = Tuple[int, Optional[int], int]
 
 
-__all__ = ['ReadVideo','WriteVideo','video_to_imgs','imgs_to_video']
+__all__ = ['ReadVideo', 'WriteVideo', 'video_to_imgs', 'imgs_to_video']
+
 
 class _ReadImgSeq:
     """Read a sequence of images from a folder is used by ReadVideo to enable
     you to switch seamlessly between the two.
-    
+
     Code assumes that all files have a sequential number on the end.
     This can be a 1, 01,001 or a 00001, 0010, 0100 format. If you send
     one example file it will try and find all the other similarly named
     but differently numbered files in the folder.
     """
 
-    def __init__(self, file_filter : str):
+    def __init__(self, file_filter: str):
         self.ext = '.'+file_filter.split('.')[1]
-        
-        assert  self.ext in IMG_FILE_EXT, 'Extension not recognised'
+
+        assert self.ext in IMG_FILE_EXT, 'Extension not recognised'
 
         self.files = BatchProcess(file_filter, smart_sort=smart_number_sort)
         ret, im = self.read()
-        self.set("",0)
+        self.set("", 0)
         assert ret, 'Failed to read file'
         self.frame_size = np.shape(im)
         self.colour = int(self.frame_size[2])
@@ -45,14 +46,15 @@ class _ReadImgSeq:
         if np.size(im) == 1:
             ret = False
         else:
-            ret = True        
+            ret = True
         return ret, im
 
-    def set(self, dummy, frame_num : float):
+    def set(self, dummy, frame_num: float):
         """set the pointer to the file with specified index. This is the index in the list of files
         discovered by BatchProcess"""
-        assert frame_num in range(len(self.files.files)), 'Attempted to set frame num to impossible value'
-        self.files.current = int(frame_num)        
+        assert frame_num in range(
+            len(self.files.files)), 'Attempted to set frame num to impossible value'
+        self.files.current = int(frame_num)
 
     def get(self, property):
         if property == cv2.CAP_PROP_POS_FRAMES:
@@ -84,23 +86,27 @@ class _ReadImgSeq:
 @Slicerator.from_class
 class ReadVideo:
     """Reading Videos or image sequences class
-    
-    This is designed to wrap
-    the OpenCV VideoCapture class and make it easier to
+
+    This is designed to wrap the OpenCV VideoCapture class and make it easier to
     work with. It also works on a sequence of images through
     combination of BatchProcess from the filehandling repo and cv2.imread. User can use both with same interface.
 
+    The class caches n images to speed up repeated reading of same images
 
-    Attributes
+
+    Inputs
     ----------
-    vid : instance
-        OpenCV VideoCapture instance or _ReadImgSeq instance depending on filetype
     filename : str
         Full path and filename to video or seq to read. If imgs supplying absolute path reads single img. Supplying path with wildcards ? * etc allows for pattern matching and selecting range of imgs.
     grayscale : bool
         True to read as grayscale
     frame_range : tuple
         (start frame num, end frame num, step) - in an img sequence frame_num is defined as position in the sequence of read files
+    cache_size : int
+        num images to cache for rapid retrieval.
+
+    Properties
+    ----------
     frame_num : int
         current frame pointed at in video or seq
     num_frames : int
@@ -139,8 +145,8 @@ class ReadVideo:
 
     """
 
-    def __init__(self, filename : Optional[str]=None, grayscale : bool=False,
-                 frame_range : FrameRange=(0, None, 1), return_function=None):
+    def __init__(self, filename: Optional[str] = None, grayscale: bool = False,
+                 frame_range: FrameRange = (0, None, 1), return_function=None, cache_size=8):
         self.filename = filename
         self.grayscale = grayscale
         self._detect_file_type()
@@ -152,12 +158,21 @@ class ReadVideo:
         self.cached_frame_number = None
         self.set_frame_range(frame_range)
         self.return_func = return_function
-        
+        # Initialize the cached read method
+        self._cached_read = lru_cache(maxsize=cache_size)(self._read)
 
-    def set_frame_range(self, frame_range : FrameRange):
+    def init_video(self):
+        """ Initialise video capture object or img_sequence"""
+        if self.filetype == 'video':
+            self.vid = cv2.VideoCapture(self.filename)
+        elif self.filetype == 'img_seq':
+            self.vid = _ReadImgSeq(self.filename)
+
+    def set_frame_range(self, frame_range: FrameRange):
         """set_frame_range limits the accessible frames in the video and the 
         frames iterated over. frame_range is a tuple (start_index, finish_index, step size)"""
-        self.frame_range = (frame_range[0], self.num_frames, frame_range[2]) if ( frame_range[1] == None) else frame_range
+        self.frame_range = (frame_range[0], self.num_frames, frame_range[2]) if (
+            frame_range[1] == None) else frame_range
         self.frame_num = frame_range[0]
         if self.frame_num != self.vid_position:
             self.set_frame(self.frame_num)
@@ -175,12 +190,72 @@ class ReadVideo:
         else:
             raise NotImplementedError('File extension is not implemented')
 
-    def init_video(self):
-        """ Initialise video capture object or img_sequence"""
-        if self.filetype == 'video':
-            self.vid = cv2.VideoCapture(self.filename)
-        elif self.filetype == 'img_seq':
-            self.vid = _ReadImgSeq(self.filename)
+    def _read(self, n: int):
+        self.vid.set(cv2.CAP_PROP_POS_FRAMES, float(n))
+        ret, im = self.vid.read()
+        if ret:
+            if self.grayscale:
+                im = images.bgr_to_gray(im)
+            if self.return_func:
+                im = self.return_func(im)
+            self.frame_num += self.frame_range[2]
+            return im.copy()
+        return None
+
+    def read_frame(self, n=None):
+        """
+        | Read a single frame from the video
+        |
+        | :param n: int
+        |    frame index calls specified frame. If None or not
+        |    specified calls the next available frame.
+        | :return: np.ndarray
+        |    returns specified image
+        """
+        assert n in range(self.frame_range[0], self.frame_range[1],
+                          self.frame_range[2]), 'requested frame not in frame_range'
+
+        if n is None:
+            return self.read_next_frame()
+        else:
+            self.set_frame(n)
+            return self._cached_read(n)
+
+    def read_next_frame(self):
+        """
+        Reads the next available frame. Note depending on the range specified
+        when instantiating object this may be step frames. To speed things up
+        if the requested frame is the previous accessed frame it accesses an image
+        cache rather than making a fresh call.
+
+        :return:
+        """
+        assert (self.frame_num >= self.frame_range[0]) & \
+               (self.frame_num < self.frame_range[1]) & \
+               ((self.frame_num - self.frame_range[0]) % self.frame_range[
+                   2] == 0), \
+            'Frame not in range'
+
+        self.frame_num += self.frame_range[2]
+
+        im = self._cached_read(self.frame_num)
+
+        if self.grayscale:
+            im = images.bgr_to_gray(im)
+        if self.return_func:
+            im = self.return_func(im)
+
+        return im.copy()
+
+    def set_frame(self, n):
+        """
+        Set_frame moves the pointer in the video to the index n
+
+        :param n: int
+            index specifying the frame
+        :return: None
+        """
+        self.frame_num = n
 
     def get_vid_props(self):
         """
@@ -215,93 +290,11 @@ class ReadVideo:
                            'format': self.format,
                            'file_extension': self.file_extension}
 
-    def read_frame(self, n=None):
-        """
-        | Read a single frame from the video
-        |
-        | :param n: int
-        |    frame index calls specified frame. If None or not
-        |    specified calls the next available frame.
-        | :return: np.ndarray
-        |    returns specified image
-        """
-        if n is None:
-            return self.read_next_frame()
-        else:
-            assert n in range(self.frame_range[0], self.frame_range[1], self.frame_range[2]), 'requested frame not in frame_range'
-            self.set_frame(n)
-            return self.read_next_frame()
-
-    def set_frame(self, n):
-        """
-        Set_frame moves the pointer in the video to the index n
-
-        :param n: int
-            index specifying the frame
-        :return: None
-        """
-        if n == self.cached_frame_number:
-            self.frame_num = n
-        elif n == self.vid_position:
-            self.frame_num = n
-        else:
-            self.frame_num = n
-            if self.frame_num < self.frame_range[0]:
-                self.frame_num = self.frame_range[0]
-            elif self.frame_num >= self.frame_range[1]:
-                self.frame_num = self.frame_range[1] - 1
-            if self.frame_num != self.vid_position:
-                self.vid.set(cv2.CAP_PROP_POS_FRAMES, float(n))
-                self.vid_position = n
-
-    def read_next_frame(self):
-        """
-        Reads the next available frame. Note depending on the range specified
-        when instantiating object this may be step frames. To speed things up
-        if the requested frame is the previous accessed frame it accesses an image
-        cache rather than making a fresh call.
-        
-        :return:
-        """
-        assert (self.frame_num >= self.frame_range[0]) & \
-               (self.frame_num < self.frame_range[1]) & \
-               ((self.frame_num - self.frame_range[0]) % self.frame_range[
-                   2] == 0), \
-            'Frame not in range'
-
-        if self.frame_num == self.cached_frame_number:
-            ret = True
-            im = self.cached_frame
-        elif self.frame_num == self.vid_position:
-            ret, im = self._read()
-        else:
-            self.set_frame(self.frame_num)
-            ret, im = self._read()
-
-        self.frame_num += self.frame_range[2]
-  
-        if ret:
-            if self.grayscale:
-                im = images.bgr_to_gray(im)
-            if self.return_func:
-                im = self.return_func(im)
-
-            return im.copy()
-        
-
-    def _read(self):
-        """private method that reads next image. By caching the previous frame
-        this speeds up things in reading video"""
-        ret, im = self.vid.read()
-        self.cached_frame = im
-        self.cached_frame_number = self.vid_position
-        self.vid_position += 1
-        return ret, im
-
     def close(self):
         """Closes video object"""
         if self.filetype == 'video':
             self.vid.release()
+        self._cached_read.cache_clear()
 
     def __getitem__(self, frame_num):
         """Getter reads frame specified by passed index"""
@@ -357,13 +350,13 @@ class WriteVideo:
 
     """
 
-
     def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='X264', compression=23):
-        self.filename=filename
+        self.filename = filename
 
         fourcc = cv2.VideoWriter_fourcc(*codec)
 
-        assert (frame_size is not None or frame is not None), "One of frame or frame_size must be supplied"
+        assert (
+            frame_size is not None or frame is not None), "One of frame or frame_size must be supplied"
 
         self.grayscale = False
 
@@ -378,16 +371,13 @@ class WriteVideo:
         if frame is None:
             self.frame_size = frame_size
 
-       
         self.vid = cv2.VideoWriter(
-                filename,
-                fourcc,
-                fps,
-                (self.frame_size[1], self.frame_size[0]))
-            
-        #self.vid.set(cv2.VIDEOWRITER_PROP_QUALITY, compression_level)  # Adjust bitrate based on compression level
-        
+            filename,
+            fourcc,
+            fps,
+            (self.frame_size[1], self.frame_size[0]))
 
+        # self.vid.set(cv2.VIDEOWRITER_PROP_QUALITY, compression_level)  # Adjust bitrate based on compression level
 
     def add_frame(self, im):
         """
@@ -399,7 +389,7 @@ class WriteVideo:
         assert np.shape(im) == self.frame_size, "Added frame is wrong shape"
 
         if self.grayscale:
-            im=cv2.cvtColor(im.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+            im = cv2.cvtColor(im.astype(np.uint8), cv2.COLOR_GRAY2BGR)
         self.vid.write(im)
 
     def close(self):
@@ -407,7 +397,6 @@ class WriteVideo:
         Release video object
         """
         self.vid.release()
-
 
     def __enter__(self):
         return self
@@ -430,23 +419,24 @@ def suffix_generator(i, num_figs=5):
 def video_to_imgs(videoname, image_filename_stub, ext='.png'):
     """
     Function to disassemble video into images
-    
+
     videoname   :   full path to video including extension
     image_filename_stub :   filename stub for all the images (full path)
     ext :   type of image extension, defaults to png
     """
-    
+
     readvid = ReadVideo(videoname)
     print('test')
     for i, img in enumerate(readvid):
-        
+
         suffix = suffix_generator(i, num_figs=len(str(readvid.num_frames)))
         images.write_img(img, image_filename_stub + suffix + ext)
- 
+
+
 def imgs_to_video(file_filter, videoname, sort=None):
     """
     Function to assemble images into a video
-    
+
     file_filter :   full path including wild cards to specify images
     videoname   :   full path to video including extension
     sort        :   optional function handle to specify order of images
@@ -455,15 +445,15 @@ def imgs_to_video(file_filter, videoname, sort=None):
 
     for i, filename in enumerate(f):
         img = images.read_img(filename)
-        if i==0:
-            write_vid = WriteVideo(videoname,frame=img)
+        if i == 0:
+            write_vid = WriteVideo(videoname, frame=img)
         write_vid.add_frame(img)
     write_vid.close()
-        
 
 
 class SuppressOpenCVWarnings:
     """Context manager to suppress OpenCV warnings about codecs."""
+
     def __enter__(self):
         self.original_value = os.environ.get('OPENCV_VIDEOIO_DEBUG')
         os.environ['OPENCV_VIDEOIO_DEBUG'] = '0'

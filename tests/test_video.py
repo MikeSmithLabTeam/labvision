@@ -33,6 +33,13 @@ def test_read_video_frame_mkv():
     frame = vid.read_next_frame()
     assert np.shape(frame) == (1080, 1920, 3)
 
+def test_read_cached_video_frame():
+    vid = video.ReadVideo(mp4_videopath)
+    frame = vid.read_frame(n=5)
+    frame = vid.read_frame(n=1)
+    frame = vid.read_frame(n=5)
+    assert np.shape(frame) == (1080, 1920, 3)
+
 
 def test_read_png_frames():
     """Check working with pngs"""
