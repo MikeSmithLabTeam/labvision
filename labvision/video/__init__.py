@@ -358,8 +358,11 @@ class WriteVideo:
 
     """
 
-    def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='XVID', addtimestamp=False):
+    def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='XVID', addtimestamp=False, scale=100):
         self.filename = filename
+        self.scale=float(scale)
+        self.supplied_frame_size = frame_size
+        self.scaled_frame_size = frame_size
 
         fourcc = cv2.VideoWriter_fourcc(*list(codec))
 
@@ -374,10 +377,10 @@ class WriteVideo:
             self.grayscale = True
 
         if frame_size is None:
-            self.frame_size = np.shape(frame)
+            self.scaled_frame_size = np.shape(self._scale_frame(frame))
 
         if frame is None:
-            self.frame_size = frame_size
+            self.scaled_frame_size = self._calc_scaled_frame(frame_size)
 
         if addtimestamp:
             timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -388,7 +391,14 @@ class WriteVideo:
             filename,
             fourcc,
             fps,
-            (self.frame_size[1], self.frame_size[0]))
+            (self.scaled_frame_size[1], self.scaled_frame_size[0]))
+
+    def _scale_frame(self, im):
+        return images.resize(im, percent=self.scale)
+
+    def _calc_scaled_frame(self, frame_size):
+        dummy_img = np.zeros(frame_size)
+        return np.shape(images.resize(dummy_img, percent=self.scale))
 
     def add_frame(self, im):
         """
@@ -397,7 +407,8 @@ class WriteVideo:
         :param im: Image
         :return: None
         """
-        assert np.shape(im) == self.frame_size, "Added frame is wrong shape"
+        im=self._scale_frame(im)
+        assert np.shape(im) == self.scaled_frame_size, "Added frame is wrong shape"
 
         if self.grayscale:
             im = cv2.cvtColor(im.astype(np.uint8), cv2.COLOR_GRAY2BGR)

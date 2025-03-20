@@ -137,6 +137,14 @@ def test_write_video():
     assert os.path.exists(vid_output_filename)
     os.remove(vid_output_filename)
 
+def test_write_scaled_video():
+    writevid = video.WriteVideo(vid_output_filename, frame=rgb_img_test(), scale=50)
+    writevid.add_frame(rgb_img_test())
+    writevid.close()
+    assert os.path.exists(vid_output_filename)
+    os.remove(vid_output_filename)
+
+
 
 def test_frame_wrong_shape_raises_error():
     """Test that error is thrown iif a frame is added with shape that is different to frame_size used in constructor"""
