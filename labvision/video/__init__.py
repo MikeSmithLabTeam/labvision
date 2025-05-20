@@ -230,7 +230,8 @@ class ReadVideo:
         if n is None:
             return self.read_next_frame()
         else:
-            assert n in range(self.frame_range[0], self.frame_range[1], self.frame_range[2]), 'requested frame not in frame_range'
+            assert n in range(self.frame_range[0], self.frame_range[1],
+                              self.frame_range[2]), 'requested frame not in frame_range'
             self.set_frame(n)
             return self.read_next_frame()
 
@@ -299,6 +300,10 @@ class ReadVideo:
         self.vid_position += 1
         return ret, im
 
+    def clear_cache(self):
+        self.cached_frame = None
+        self.cached_frame_number = None
+
     def close(self):
         """Closes video object"""
         if self.filetype == 'video':
@@ -360,7 +365,7 @@ class WriteVideo:
 
     def __init__(self, filename, frame_size=None, frame=None, fps=50.0, codec='XVID', addtimestamp=False, scale=100):
         self.filename = filename
-        self.scale=float(scale)
+        self.scale = float(scale)
         self.supplied_frame_size = frame_size
         self.scaled_frame_size = frame_size
 
@@ -407,8 +412,9 @@ class WriteVideo:
         :param im: Image
         :return: None
         """
-        im=self._scale_frame(im)
-        assert np.shape(im) == self.scaled_frame_size, "Added frame is wrong shape"
+        im = self._scale_frame(im)
+        assert np.shape(
+            im) == self.scaled_frame_size, "Added frame is wrong shape"
 
         if self.grayscale:
             im = cv2.cvtColor(im.astype(np.uint8), cv2.COLOR_GRAY2BGR)
