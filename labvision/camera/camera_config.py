@@ -17,7 +17,7 @@ class CameraType(Enum):
     LOGITECH_HD_1080P = {
         'apipreference': cv2.CAP_DSHOW,
         'name': 'Logi USB Camera (C615 HD WebCam)',
-        'ids': 'USB\VID_046D&PID_082C\BF45CE90',
+        'ids': r'USB\VID_046D&PID_082C\BF45CE90',
         'width': 1920,
         'height': 1080,
         'fps' : 30.0
@@ -26,7 +26,7 @@ class CameraType(Enum):
     PANASONICHCX1000 = {
         'apipreference': cv2.CAP_DSHOW,
         'name': 'USB Composite Device',
-        'ids':'USB\VID_EBA4&PID_7588\HU123450',
+        'ids':r'USB\VID_EBA4&PID_7588',
         'width': 1920,
         'height': 1080,
         'fps' : 30.0
@@ -35,7 +35,7 @@ class CameraType(Enum):
     PANASONICG9 = {
         'apipreference': cv2.CAP_MSMF,
         'name': 'USB Composite Device',
-        'ids':'USB\VID_32ED&PID_311E\6&289A8D7&0&4',
+        'ids':r'USB\VID_32ED&PID_311E',
         'width': 1920,
         'height': 1080,
         'fps' : 30.0

@@ -186,11 +186,10 @@ def get_cameras_on_windows(show=False):
         if show:
             print(usb.Name)
             print(usb.DeviceId)
-        if usb.Name in cam_names:
-            if usb.Name != 'USB Composite Device':
-                cam_objs.append(camera_types[cam_names.index(usb.name)])
-            elif usb.Name == 'USB Composite Device' and usb.DeviceId in cam_ids:
-                cam_objs.append(camera_types[cam_names.index(usb.name)])
+        
+        for index, cam_id in enumerate(cam_ids):
+            if cam_id in usb.DeviceId:
+                cam_objs.append(camera_types[index])
     return cam_objs
 
 
