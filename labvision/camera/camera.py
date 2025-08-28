@@ -3,6 +3,7 @@ import cv2
 import sys
 import os
 import numpy as np
+from cv2_enumerate_cameras import enumerate_cameras
 
 from .camera_config import CameraType, CameraProperty
 from typing import Optional, Tuple
@@ -40,16 +41,15 @@ class Camera:
 
     def __init__(self, cam_num=None, cam_type: Optional[CameraType] = None, frame_size: Tuple[int, int, int] = None, fps: Optional[float] = None, snap: bool = True):
 
-        cam_num, cam_type = get_camera(cam_num, cam_type, show=False)
-        print(cam_num, cam_type)
-
+        cam_num = get_camera(cam_num, cam_type, show=True)
+        print('Using camera: {}, {}'.format(cam_num, cam_type.value['name']))
         # cv2.CAP_DSHOW # cv2.CAP_MSMF seems to break camera
-        self.cam = cv2.VideoCapture(
-            cam_num, apiPreference=cam_type.value['apipreference'])
+        self.cam = cv2.VideoCapture(cam_num, apiPreference=cam_type.value['apipreference'])
         self.set = self.cam.set
         self.get = self.cam.get
         self.snap = snap
 
+        
         if frame_size is None:
             self.set_property(property=CameraProperty.WIDTH,
                               value=cam_type.value['width'])
@@ -60,15 +60,17 @@ class Camera:
                               value=frame_size[0])
             self.set_property(property=CameraProperty.HEIGHT,
                               value=frame_size[1])
-
+        
         if fps is None:
             self.set_property(property=CameraProperty.FPS,
                               value=cam_type.value['fps'])
         else:
             self.set_property(property=CameraProperty.FPS, value=fps)
+        
 
         if not self.cam.isOpened():
             raise CamReadError(self.cam, None)
+        print('Camera instance opened successfully')
 
     def get_frame(self, retry=3):
         """Get a frame from the camera and return"""
@@ -160,92 +162,21 @@ class Camera:
     def __exit__(self, exception_type, exception_value, traceback):
         self.close()
 
-
 WebCamera = Camera
 
-
-def get_cameras_on_windows(show=False):
-    """Scan a windows computer for any attached cameras which match CameraType's
-    declarations. Assumes you only have one of each type of camera on your system.
-    Builds a list of all cameras in order specified by system. Assumes you don't have
-    cameras that are unlisted in CameraType plugged in.
-    """
-    wmi = win32com.client.GetObject("winmgmts:")
-    cam_names = [camera.value['name']
-                 for _, camera in CameraType.__members__.items()]
-    cam_ids = [camera.value['ids']
-                 for _, camera in CameraType.__members__.items()]
-    camera_types = [camtype for _, camtype in CameraType.__members__.items()]
-    
-
-    cam_objs = []
-
-    if show:
-        print('Following cameras are plugged in:')
-    for usb in wmi.InstancesOf("Win32_USBHub"):
-        if show:
-            print(usb.Name)
-            print(usb.DeviceId)
-        
-        for index, cam_id in enumerate(cam_ids):
-            if cam_id in usb.DeviceId:
-                cam_objs.append(camera_types[index])
-    return cam_objs
-
-
-def get_cameras_on_linux():
-    """Scan a linux system for cameras"""
-    items = os.listdir('/dev/')
-    newlist = []
-    for names in items:
-        if names.startswith("video"):
-            newlist.append(names)
-    print('needs implementing properly')
-
-    return newlist
-
-
-def get_camera(cam_num: Optional[int], camtype: Optional[CameraType], show=True):
+def get_camera(cam_num: Optional[int], camtype: Optional[CameraType], show=False):
     """Looks to see whether camtype exists on system. If it does
     returns the index used in OpenCV else raises error"""
-    if os.name == 'nt':
-        cameras = get_cameras_on_windows(show=show)
-    else:
-        cameras = get_cameras_on_linux()
-
-    if len(cameras) == 0:
+    cam_num = -1
+    for camera_info in enumerate_cameras(apiPreference=camtype.value['apipreference']):
+        print(f'{camera_info.index}: {camera_info.name} {camtype.value['name'] in camera_info.name}')
+        print(camtype.name)
+        if camtype.value['name'] in camera_info.name:
+            cam_num = camera_info.index
+    
+    if cam_num == -1:
         raise CameraNotDetected()
-
-    cam_names = [camera.name for camera in cameras]
-
-    if camtype is None:
-        if (cam_num is None):
-            cam_num = 0
-        camtype = cameras[cam_num]
-    elif camtype.name in cam_names:
-        cam_num = cam_names.index(camtype.name)
-    else:
-        raise CameraNotDetected()
-
-    return cam_num, camtype
-
-
-def guess_camera_number_linux():
-    """Function to find camera number assigned to cam by computer"""
-
-    try:
-        if 'linux' in sys.platform:
-            items = os.listdir('/dev/')
-            newlist = []
-            for names in items:
-                if names.startswith("video"):
-                    newlist.append(names)
-            cam_num = int(newlist[0][5:])
-    except AssertionError as error:
-        print(error)
-        print("Camera number set to 0")
-        cam_num = 0
-
+    print('cam_num', cam_num)
     return cam_num
 
 # --------------------------------------------------------------------------------------------------------
@@ -288,4 +219,4 @@ class CamPropsError(Exception):
 class CameraNotDetected(Exception):
     def __init__(self) -> None:
         print('Camera not detected. Check connection and value of CamType supplied')
-        super().__init__(*args)
+        super().__init__()

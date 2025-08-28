@@ -4,10 +4,15 @@ import cv2
 class CameraType(Enum):
     """Camera settings.
 
-    For the panasonic cameras these are accessed using a VideoCapture card.
-    Panasonic.py enables you to use GPhoto2 on a Linux system to fully control Panasonic G9.
-    New devices need to be listed. See https://learn.microsoft.com/en-us/windows-hardware/drivers/install/standard-usb-identifiers
-    to understand what you need. USB\VID_v(4)&PID_d(4)&REV_r(4) we put USB\VID_v(4)&PID_d(4) under ids.
+    To add a new camera you can run:
+    from cv2_enumerate_cameras import enumerate_cameras
+    import cv2
+
+    for camera_info in enumerate_cameras(apiPreference=cv2.CAP_DSHOW):
+        print(f'{camera_info.index}: {camera_info.name}')
+
+    Create a new enum type. The name should be the returned name from the above code.
+
 
     Parameters
     ----------
@@ -16,8 +21,7 @@ class CameraType(Enum):
     """
     LOGITECH_HD_1080P = {
         'apipreference': cv2.CAP_DSHOW,
-        'name': 'Logi USB Camera (C615 HD WebCam)',
-        'ids': r'USB\VID_046D&PID_082C\BF45CE90',
+        'name': 'Logi C615 HD WebCam',
         'width': 1920,
         'height': 1080,
         'fps' : 30.0
@@ -25,17 +29,15 @@ class CameraType(Enum):
 
     PANASONICHCX1000 = {
         'apipreference': cv2.CAP_DSHOW,
-        'name': 'USB Composite Device',
-        'ids':r'USB\VID_EBA4&PID_7588',
+        'name': 'USB Composite Device',#You need to update this with the name from cv2_enumerate_cameras
         'width': 1920,
         'height': 1080,
         'fps' : 30.0
     }
 
     PANASONICG9 = {
-        'apipreference': cv2.CAP_MSMF,
-        'name': 'USB Composite Device',
-        'ids':r'USB\VID_32ED&PID_311E',
+        'apipreference': cv2.CAP_DSHOW,
+        'name': 'ezcap GameLink',
         'width': 1920,
         'height': 1080,
         'fps' : 30.0
