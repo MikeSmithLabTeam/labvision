@@ -97,7 +97,7 @@ def erode(img, kernel=3, kernel_type=None, iterations=1, configure=False):
             kernel = cv2.getStructuringElement(kernel_type, kernel)
         else:
             kernel = np.ones(kernel)
-        out = cv2.erode(img, kernel, iterations)
+        out = cv2.erode(img, kernel, iterations=iterations)
     return out
 
 
