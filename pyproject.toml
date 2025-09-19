@@ -20,7 +20,7 @@ dependencies = [
 "scipy",
 "moviepy",
 "slicerator",
-"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets",
+"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets>=1.0",
 "filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling"
 ]
 
