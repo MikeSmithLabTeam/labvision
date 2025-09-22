@@ -11,20 +11,23 @@ dependencies = [
 "sphinx>=4.0",
 "sphinx-autobuild>=2021.3.14",
 "sphinx-rtd-theme>=1.2.0",
+"qimage2ndarray",
+"moviepy>=2.0",
+"PyQt6",
 "opencv-python",
-"numpy",
-"matplotlib",
-"pywin32; sys_platform == 'win32'",
-"pexpect",
-"pillow",
-"scipy",
-"moviepy",
 "slicerator",
-"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets#egg=qtwidgets>=1.0",
+"legacy-cgi",
+"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets",
 "filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling"
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["labvision"]
+filterwarnings = ["ignore:your performance may suffer as PyTables will pickle object types that it cannot map directly to c-types:tables.PerformanceWarning"]
 
+[tool.setuptools.packages]
+find = {include=["labvision", "labvision.*"], exclude=["testdata"]}
 
+[tool.setuptools.package-data]
+"particletracker" = ["data/*", "config/*"]
