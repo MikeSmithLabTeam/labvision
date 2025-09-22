@@ -1,0 +1,22 @@
+name: labvision
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pytables
+  - python
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - pytest
+  - tqdm
+  - pillow
+  - slicerator
+  - jupyterlab
+  - openpyxl
+  - pip
+  - jupyterlab
+  - openpyxl
+  - pip:
+    - git+https://github.com/mikesmithlabteam/labvision
