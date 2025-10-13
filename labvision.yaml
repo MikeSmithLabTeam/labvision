@@ -3,20 +3,21 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - python>=3.13.*
   - pytables
-  - python
-  - numpy
+  - numpy >=1.25
   - scipy
   - pandas
   - matplotlib
+  - opencv
+  - pexpect
   - pytest
   - tqdm
   - pillow
   - slicerator
   - jupyterlab
   - openpyxl
-  - pip
   - jupyterlab
-  - openpyxl
+  - pip
   - pip:
-    - git+https://github.com/mikesmithlabteam/labvision
+    - -e .

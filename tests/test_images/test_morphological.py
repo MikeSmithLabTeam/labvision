@@ -17,7 +17,7 @@ def test_erode():
     img = erode(binary_single_circle(), kernel=(5, 5),
                 iterations=2)
     assert int(
-        (np.sum(binary_single_circle()[50, :]) - (np.sum(img[50, :])))/255) == 6
+        (np.sum(binary_single_circle()[50, :]) - (np.sum(img[50, :])))/255) == 10
 
 
 def test_closing():

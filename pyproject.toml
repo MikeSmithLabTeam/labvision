@@ -8,15 +8,14 @@ build-backend = "setuptools.build_meta"
 name = "labvision"
 version = "1.1.0"
 dependencies = [
+"PyQt6>=6.0.0",
 "sphinx>=4.0",
 "sphinx-autobuild>=2021.3.14",
 "sphinx-rtd-theme>=1.2.0",
 "qimage2ndarray",
 "moviepy>=2.0",
-"PyQt6",
-"opencv-python",
-"slicerator",
 "legacy-cgi",
+"cv2_enumerate_cameras",
 "qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets",
 "filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling"
 ]
