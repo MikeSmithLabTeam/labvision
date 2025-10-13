@@ -8,20 +8,15 @@ build-backend = "setuptools.build_meta"
 name = "labvision"
 version = "1.0.0"
 dependencies = [
+"PyQt6>=6.0.0",
 "sphinx>=4.0",
 "sphinx-autobuild>=2021.3.14",
 "sphinx-rtd-theme>=1.2.0",
-"opencv-python",
-"numpy",
-"matplotlib",
+"qimage2ndarray",
+"moviepy >= 2.0",
 "pywin32; sys_platform == 'win32'",
-"pexpect",
-"pillow",
-"scipy",
-"moviepy",
-"slicerator",
-"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets",
-"filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling"
+"qtwidgets @ git+https://github.com/MikeSmithLabTeam/qtwidgets@main",
+"filehandling @ git+https://github.com/MikeSmithLabTeam/filehandling@main"
 ]
 
 [tool.pytest.ini_options]

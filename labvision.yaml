@@ -1,0 +1,15 @@
+name: labvision
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.13.*
+  - numpy >=1.25
+  - opencv
+  - pexpect
+  - pillow
+  - slicerator
+  - pytest
+  - pip
+  - pip:
+      - -e .

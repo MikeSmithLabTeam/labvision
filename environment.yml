@@ -101,5 +101,6 @@ dependencies:
       - git+https://github.com/mikesmithlabteam/filehandling.git
       - opencv-python==4.8.0.76
       - qimage2ndarray==1.10.0
+      - cv2_enumerate_cameras
       - git+https://github.com/mikesmithlabteam/qtwidgets.git
 prefix: C:\Users\mikei\miniconda3\envs\labvision
