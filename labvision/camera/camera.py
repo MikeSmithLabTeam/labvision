@@ -169,7 +169,7 @@ def get_camera(cam_num: Optional[int], camtype: Optional[CameraType], show=False
     returns the index used in OpenCV else raises error"""
     cam_num = -1
     for camera_info in enumerate_cameras(apiPreference=camtype.value['apipreference']):
-        print(f'{camera_info.index}: {camera_info.name} {camtype.value['name'] in camera_info.name}')
+        print(f'{camera_info.index}: {camera_info.name} {camtype.value["name"] in camera_info.name}')
         print(camtype.name)
         if camtype.value['name'] in camera_info.name:
             cam_num = camera_info.index
